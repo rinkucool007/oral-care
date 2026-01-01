@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Dental Care Lounge | Excellence in Smile Design</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        .font-display { font-family: 'Playfair+Display', serif; }
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in { animation: fade-in 0.8s ease-out forwards; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        html { scroll-behavior: smooth; }
+        .chat-scroll::-webkit-scrollbar { width: 4px; }
+        .chat-scroll::-webkit-scrollbar-track { background: transparent; }
+        .chat-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+    </style>
+    <script type="importmap">
+{
+  "imports": {
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "react-dom/client": "https://esm.sh/react-dom@^19.2.3/client",
+    "lucide-react": "https://esm.sh/lucide-react@^0.474.0",
+    "react-router-dom": "https://esm.sh/react-router-dom@^7.1.0",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "react/": "https://esm.sh/react@^19.2.3/"
+  }
+}
+</script>
+</head>
+<body class="bg-slate-50 text-slate-900 overflow-x-hidden">
+    <div id="root"></div>
+
+    <script type="module">
+        import React, { useState, useEffect, useRef } from 'react';
+        import { createRoot } from 'react-dom/client';
+        import { HashRouter, Routes, Route, Link, useLocation } from 'react-router-dom';
+        import { 
+            Smile, Menu, X, MessageSquare, Send, Sparkles, User, 
+            Bot, Loader2, ArrowRight, Shield, Award, Clock, Star, 
+            MapPin, Phone, Mail, Microscope, ShieldCheck, Zap, Activity,
+            Calendar, CheckCircle2, Monitor, Dna, Heart, Stethoscope, HelpCircle
+        } from 'lucide-react';
+
+        // --- Configuration & Constants ---
+        const CLINIC_NAME = "The Dental Care Lounge";
+        const CONTACT_INFO = {
+            address: "123 Elegance Boulevard, Suite 500, Downtown City",
+            phone: "+1 (555) 987-6543",
+            emergency: "+1 (555) 000-HELP",
+            email: "care@dentalcarelounge.com",
+            hours: [
+                { day: "Mon - Fri", time: "08:00 AM - 07:00 PM" },
+                { day: "Saturday", time: "09:00 AM - 04:00 PM" },
+                { day: "Sunday", time: "Closed (Emergency Only)" }
+            ]
+        };
+
+        const SERVICES = [
+            { id: 'laser-surgery', title: 'Laser Surgery', icon: 'Zap', category: 'General Dental Care', description: 'Minimally invasive treatment with faster healing times and reduced discomfort.' },
+            { id: 'digital-imaging', title: 'Digital Imaging', icon: 'Monitor', category: 'General Dental Care', description: 'High-precision 3D scanning for accurate diagnosis and treatment planning.' },
+            { id: 'dental-aesthetics', title: 'Dental Aesthetics', icon: 'Sparkles', category: 'Aesthetic Dentistry', description: 'Comprehensive smile makeovers using the latest in porcelain and composite tech.' },
+            { id: 'implantology', title: 'Implantology', icon: 'Dna', category: 'Implantology', description: 'Permanent tooth replacement solutions that look and feel completely natural.' },
+            { id: 'teeth-whitening', title: 'Teeth Whitening', icon: 'Smile', category: 'Aesthetic Dentistry', description: 'Professional grade whitening for a brighter, more confident smile.' },
+            { id: 'preventive-care', title: 'Preventive Care', icon: 'ShieldCheck', category: 'General Dental Care', description: 'Regular checkups and cleaning to maintain lifelong oral health.' }
+        ];
+
+        const SUGGESTED_QUESTIONS = [
+            "What is laser dentistry?", "How long do implants last?", "Sensitive teeth tips", 
+            "Cost of whitening?", "Do you take insurance?", "Emergency pain help",
+            "Veneers vs Crowns", "Invisalign process"
+        ];
+
+        // --- Knowledge Base with 200+ Q&A Pairs ---
+        const KNOWLEDGE_BASE = {
+            // Greetings (10 variations)
+            "hi": "Hello! Welcome to The Dental Care Lounge. How can I help you with your smile today?",
+            "hello": "Hi there! Thanks for visiting The Dental Care Lounge. What can I assist you with?",
+            "hey": "Hey! Great to see you. How can I help with your dental care questions?",
+            "good morning": "Good morning! Welcome to The Dental Care Lounge. What brings you in today?",
+            "good afternoon": "Good afternoon! How can I assist you with your dental health?",
+            "good evening": "Good evening! Welcome to our lounge. What can I help you with?",
+            "greetings": "Greetings! Thank you for choosing The Dental Care Lounge. How may I assist you?",
+            "howdy": "Howdy! Welcome to our dental lounge. What questions do you have?",
+            "what's up": "Hello! I'm here to help with all your dental questions. What can I do for you?",
+            "hi there": "Hi there! Welcome to The Dental Care Lounge. How can I brighten your day?",
+
+            // General Information (15)
+            "what are your hours": "We're open Mon-Fri: 8:00 AM - 7:00 PM, Saturday: 9:00 AM - 4:00 PM, and Sunday: Emergency Only. Call us at +1 (555) 987-6543!",
+            "hours": "Our hours are Mon-Fri: 8:00 AM - 7:00 PM, Saturday: 9:00 AM - 4:00 PM, Sunday: Emergency Only.",
+            "when are you open": "We're open Mon-Fri: 8:00 AM - 7:00 PM, Saturday: 9:00 AM - 4:00 PM. Sunday is for emergencies only.",
+            "location": "We're located at 123 Elegance Boulevard, Suite 500, Downtown City. Easy parking available!",
+            "where are you located": "Our flagship lounge is at 123 Elegance Boulevard, Suite 500, Downtown City.",
+            "address": "123 Elegance Boulevard, Suite 500, Downtown City. See you soon!",
+            "phone number": "Call us at +1 (555) 987-6543 or for emergencies: +1 (555) 000-HELP",
+            "contact": "Phone: +1 (555) 987-6543, Emergency: +1 (555) 000-HELP, Email: care@dentalcarelounge.com",
+            "email": "You can reach us at care@dentalcarelounge.com. We respond within 24 hours!",
+            "emergency": "🚨 URGENT: For dental emergencies, call +1 (555) 000-HELP immediately!",
+            "parking": "We offer complimentary valet parking and a dedicated patient parking garage.",
+            "how do i get there": "We're in downtown at 123 Elegance Boulevard, Suite 500. GPS-friendly with ample parking!",
+            "directions": "Use GPS: 123 Elegance Boulevard, Suite 500, Downtown City. Call if you need assistance: +1 (555) 987-6543",
+            "what is your email": "Our email is care@dentalcarelounge.com. We'll get back to you within 24 hours!",
+            "book appointment": "You can book online through our contact page, call +1 (555) 987-6543, or email care@dentalcarelounge.com!",
+
+            // Insurance & Payment (15)
+            "do you take insurance": "Yes! We accept most major PPO and HMO plans. Contact us to verify your coverage.",
+            "insurance": "We work with most insurance providers. Call +1 (555) 987-6543 to verify your specific plan!",
+            "payment options": "We accept insurance, CareCredit, HSA/FSA cards, credit/debit cards, and cash.",
+            "financing": "We offer flexible financing through CareCredit with 0% interest options available!",
+            "carecredit": "Yes! We partner with CareCredit for flexible payment plans with low or no interest.",
+            "cost": "Costs vary by treatment. Call +1 (555) 987-6543 for a free consultation and estimate!",
+            "how much": "Pricing depends on your specific needs. We offer free consultations - call +1 (555) 987-6543!",
+            "payment plan": "We offer flexible payment plans through CareCredit and in-house financing options.",
+            "accept credit cards": "Yes! We accept all major credit cards, HSA/FSA cards, and digital payments.",
+            "dental insurance": "We accept most dental insurance plans including PPO and HMO. Verification available!",
+            "out of pocket": "We'll maximize your insurance benefits. Out-of-pocket costs vary - call for an estimate!",
+            "hsa": "Yes, we accept HSA and FSA cards for all treatments!",
+            "fsa": "Absolutely! FSA funds can be used for all our dental services.",
+            "discount": "We offer new patient discounts and family package deals. Ask about current promotions!",
+            "price list": "Each treatment is customized. Contact us for a personalized quote and free consultation!",
+
+            // Preventive Care (20)
+            "cleaning": "Professional cleanings remove plaque and tartar, preventing cavities and gum disease. Recommended every 6 months!",
+            "checkup": "Regular checkups include exam, cleaning, X-rays, and early detection of issues. Book every 6 months!",
+            "teeth cleaning": "Our deep cleanings remove buildup, polish teeth, and check for early signs of problems. Schedule today!",
+            "dental exam": "Comprehensive exams include visual inspection, X-rays, cancer screening, and personalized care plan.",
+            "x-ray": "Digital X-rays use 90% less radiation and provide instant, detailed images for accurate diagnosis.",
+            "fluoride": "Fluoride treatments strengthen enamel and prevent cavities, especially beneficial for children and high-risk patients.",
+            "sealants": "Dental sealants protect molars from decay by sealing grooves where bacteria hide. Great for kids!",
+            "how often cleaning": "We recommend professional cleanings every 6 months for optimal oral health.",
+            "prevent cavities": "Brush twice daily, floss, use fluoride toothpaste, limit sugar, and get regular dental checkups!",
+            "gum disease prevention": "Brush, floss daily, use antibacterial mouthwash, don't smoke, and get regular cleanings!",
+            "brushing technique": "Use soft bristles, 45-degree angle to gums, gentle circular motions, 2 minutes, twice daily!",
+            "flossing": "Floss daily! Use 18 inches, curve around each tooth in a C-shape, slide gently below gumline.",
+            "toothbrush": "Use a soft-bristled brush, replace every 3 months, and consider electric for better cleaning!",
+            "mouthwash": "Antibacterial mouthwash reduces bacteria, freshens breath. Use after brushing and flossing!",
+            "tongue cleaning": "Clean your tongue daily to remove bacteria, improve breath, and enhance taste!",
+            "oral hygiene": "Brush twice daily, floss once, use mouthwash, eat healthy, avoid tobacco, and visit us regularly!",
+            "kids dental care": "Start early! First visit by age 1, brush with rice-sized fluoride paste, limit juice and sugar.",
+            "baby teeth": "Baby teeth are crucial! They hold space for adult teeth and affect speech and eating. Care for them!",
+            "teething": "Teething can cause discomfort. Use cold teethers, gentle gum massage, and consult us if concerned.",
+            "dental anxiety": "We specialize in comfort! Sedation options, calming environment, and gentle care available.",
+
+            // Restorative Dentistry (25)
+            "fillings": "We use biocompatible, tooth-colored composite fillings that blend naturally and are mercury-free!",
+            "cavity": "Cavities are treated with gentle removal and natural-looking fillings. Early detection is key!",
+            "root canal": "Modern root canals are comfortable! We save infected teeth with precision and minimal discomfort.",
+            "crown": "Crowns restore damaged teeth with durable, natural-looking porcelain. Custom-made for perfect fit!",
+            "bridge": "Dental bridges replace missing teeth using adjacent teeth as anchors. Natural appearance guaranteed!",
+            "tooth pain": "🚨 Tooth pain needs immediate attention! Call our emergency line: +1 (555) 000-HELP",
+            "broken tooth": "Don't panic! Rinse mouth, save pieces, apply cold compress. Call us immediately: +1 (555) 987-6543",
+            "chipped tooth": "We can repair chips with bonding or veneers. Schedule ASAP to prevent further damage!",
+            "cracked tooth": "Cracks need immediate care to prevent infection. Call us today: +1 (555) 987-6543",
+            "lost filling": "Lost fillings expose sensitive areas. Call us immediately for same-day repair!",
+            "tooth extraction": "We make extractions comfortable with sedation options. Healing takes 1-2 weeks with proper care.",
+            "wisdom teeth": "Wisdom teeth often need removal to prevent crowding and pain. We offer gentle, expert extraction.",
+            "dentures": "Modern dentures look natural and fit comfortably. We offer partial, full, and implant-supported options!",
+            "partial denture": "Partial dentures replace several missing teeth. Removable, affordable, and natural-looking!",
+            "tooth decay": "Early decay can be reversed with fluoride. Advanced decay needs fillings. Prevention is best!",
+            "silver fillings": "We use tooth-colored composites instead of mercury amalgam for safer, more aesthetic results.",
+            "white fillings": "Composite fillings match your tooth color perfectly and bond strongly. Mercury-free!",
+            "how long do fillings last": "Quality composite fillings last 7-10 years with proper care. Crowns last 10-15+ years!",
+            "do fillings hurt": "Modern anesthesia makes fillings painless! Minor sensitivity may occur for a few days after.",
+            "root canal pain": "Root canals RELIEVE pain! The procedure itself is comfortable with local anesthesia.",
+            "alternatives to root canal": "The only alternative is extraction. We always try to save natural teeth first!",
+            "crown vs filling": "Fillings repair small cavities. Crowns cover entire tooth for major damage or after root canals.",
+            "how long crown last": "Porcelain crowns last 10-15 years or longer with good oral hygiene and regular checkups!",
+            "crown procedure": "Crown process: prepare tooth, take impression, temporary crown, then permanent crown in 2 visits.",
+            "tooth sensitive after filling": "Mild sensitivity for 1-2 weeks is normal. Avoid extreme temperatures. Call if it persists!",
+
+            // Aesthetic/Cosmetic Dentistry (25)
+            "teeth whitening": "Professional whitening brightens teeth 3-8 shades! Safe, fast, and dramatically improves your smile.",
+            "whitening": "In-office whitening takes 1 hour for dramatic results. Take-home kits available too!",
+            "veneers": "Porcelain veneers transform smiles! Thin shells cover imperfections for a Hollywood smile.",
+            "porcelain veneers": "Custom-crafted veneers last 10-15 years, resist stains, and look incredibly natural!",
+            "smile makeover": "Complete smile transformations using veneers, whitening, crowns, and orthodontics. Let's design yours!",
+            "cosmetic dentistry": "We offer veneers, whitening, bonding, gum contouring, and complete smile redesigns!",
+            "bonding": "Dental bonding repairs chips and gaps with tooth-colored resin in one visit. Affordable and effective!",
+            "white teeth": "Professional whitening, good hygiene, avoid staining foods, and regular cleanings keep teeth white!",
+            "yellow teeth": "Yellowing happens with age, coffee, wine, smoking. Professional whitening reverses discoloration!",
+            "stained teeth": "We remove stains with professional cleaning and whitening. Results are immediate and dramatic!",
+            "how to whiten teeth": "Professional in-office whitening is safest and most effective. Over-the-counter options are weaker.",
+            "whitening cost": "Professional whitening ranges $300-$800. Custom trays and multiple sessions available. Call for quote!",
+            "veneers vs crowns": "Veneers cover front surface for aesthetics. Crowns cover entire tooth for strength and restoration.",
+            "lumineers": "Lumineers are ultra-thin veneers requiring minimal tooth prep. Great for minor cosmetic changes!",
+            "gum contouring": "Laser gum reshaping creates balanced, beautiful gum lines. Minimally invasive with quick healing!",
+            "gummy smile": "We fix gummy smiles with laser gum contouring or Botox. Results are immediate and natural!",
+            "crooked teeth": "Straighten teeth with Invisalign clear aligners or traditional braces. Consult to find your option!",
+            "gap between teeth": "Close gaps with veneers, bonding, or Invisalign. Quick, painless, and stunning results!",
+            "celebrity smile": "Get a Hollywood smile with our comprehensive aesthetic treatments: veneers, whitening, and more!",
+            "coffee stains": "Professional whitening removes coffee stains. Rinse after coffee and use whitening toothpaste!",
+            "smoking teeth stains": "Tobacco causes deep stains. Professional whitening helps, but quitting smoking is essential!",
+            "teeth whitening safe": "Professional whitening is very safe under dental supervision. Temporary sensitivity may occur.",
+            "how long whitening last": "Results last 1-3 years depending on diet and habits. Touch-ups maintain brightness!",
+            "whitening strips": "Over-the-counter strips work but are slower and weaker than professional treatments.",
+            "natural teeth whitening": "Baking soda and hydrogen peroxide help slightly, but professional whitening is most effective.",
+
+            // Orthodontics (15)
+            "braces": "We offer traditional metal, ceramic, and clear braces to straighten teeth at any age!",
+            "invisalign": "Invisalign uses clear, removable aligners to straighten teeth discreetly. No metal brackets!",
+            "clear aligners": "Clear aligners are virtually invisible, removable, and comfortable. Great for adults and teens!",
+            "how long braces": "Treatment typically lasts 12-24 months depending on complexity. We'll create your custom timeline!",
+            "braces cost": "Braces cost $3,000-$7,000. We offer payment plans and work with insurance. Free consult available!",
+            "invisalign cost": "Invisalign ranges $3,500-$8,000. Often comparable to braces. Financing available!",
+            "adult braces": "It's never too late! We treat many adults with braces or Invisalign. Discreet options available.",
+            "braces vs invisalign": "Braces work faster for complex cases. Invisalign is removable and invisible. We'll recommend best option!",
+            "retainer": "Retainers maintain straight teeth after braces. Wear as directed to prevent shifting!",
+            "overbite": "Overbites can be corrected with braces or Invisalign. Improves function and appearance!",
+            "underbite": "Underbites need orthodontic correction, sometimes with surgery. Early treatment is best!",
+            "crossbite": "Crossbites can damage teeth and jaw. We correct with braces or expanders. Consult today!",
+            "teeth straightening": "Multiple options: traditional braces, ceramic braces, Invisalign. Free consultation to discuss!",
+            "how invisalign works": "Custom aligners gradually shift teeth. Wear 20-22 hours daily, change every 1-2 weeks!",
+            "can adults get braces": "Absolutely! Many adults choose braces or Invisalign. Age is no barrier to a beautiful smile!",
+
+            // Dental Implants (20)
+            "dental implants": "Implants are permanent tooth replacements that look and feel natural. Success rate over 95%!",
+            "implants": "Titanium posts fuse with bone to support crowns, bridges, or dentures. Most natural solution!",
+            "how long do implants last": "Implants can last a lifetime with proper care! The crown may need replacement after 10-15 years.",
+            "implant cost": "Single implants cost $3,000-$5,000. We offer financing and work with insurance. Free consult!",
+            "implant procedure": "Process: consultation, placement surgery, healing (3-6 months), crown attachment. Comfortable with sedation!",
+            "implant vs bridge": "Implants don't affect adjacent teeth and last longer. Bridges are faster but require grinding neighboring teeth.",
+            "bone graft": "Bone grafts build jaw strength for implants. Healing takes 3-6 months before implant placement.",
+            "missing tooth": "Replace missing teeth with implants, bridges, or dentures. Implants are the gold standard!",
+            "false teeth": "Modern dentures look natural! We offer traditional, partial, and implant-supported options.",
+            "implant surgery": "Implant surgery is comfortable with local anesthesia or sedation. Minimal downtime!",
+            "all on 4": "All-on-4 replaces full arch with just 4 implants. Get a full set of teeth in one day!",
+            "snap on dentures": "Implant-supported dentures snap securely in place. No slipping! More stable than traditional.",
+            "implant pain": "Discomfort is minimal and managed with medication. Most patients return to work the next day!",
+            "implant success rate": "Dental implants have a 95-98% success rate. Our specialists ensure optimal results!",
+            "can smokers get implants": "Smoking reduces success rate. We recommend quitting before treatment for best results.",
+            "implant failure": "Rare but can happen. Causes: infection, insufficient bone, smoking. We prevent with careful planning!",
+            "immediate implants": "Same-day implants replace extracted teeth immediately. Not all cases qualify - consult needed!",
+            "mini implants": "Smaller implants for denture stabilization. Less invasive, faster healing, lower cost.",
+            "implant care": "Care like natural teeth: brush, floss, regular checkups. Implants don't get cavities but need gum care!",
+            "who can get implants": "Most adults with good health and sufficient bone. We evaluate candidacy in free consultation!",
+
+            // Laser Dentistry (10)
+            "laser dentistry": "We use advanced lasers for gum surgery, cavity treatment, and whitening. Faster healing, less pain!",
+            "laser treatment": "Lasers treat gum disease, remove tissue, prepare teeth for fillings. Minimally invasive!",
+            "laser gum surgery": "Laser gum reshaping is precise, minimally invasive with little bleeding or swelling. Quick recovery!",
+            "what is laser dentistry": "Laser technology uses focused light to treat teeth and gums with precision, reducing pain and healing time.",
+            "laser cavity treatment": "Lasers remove decay without drilling in some cases. More comfortable for patients!",
+            "laser whitening": "Laser-activated whitening accelerates results for dramatically whiter teeth in one session!",
+            "benefits of laser": "Benefits: less pain, faster healing, minimal bleeding, greater precision, reduced need for anesthesia!",
+            "is laser safe": "Yes! Dental lasers are FDA-approved and very safe when used by trained professionals.",
+            "laser vs drill": "Lasers are quieter, cause less vibration, and more comfortable. Not all procedures can use lasers.",
+            "waterless laser": "Our waterlase technology combines water and laser for comfortable, precise treatment!",
+
+            // Gum Disease & Periodontics (15)
+            "gum disease": "Gum disease causes bleeding, recession, and tooth loss. Early treatment saves teeth and gums!",
+            "gingivitis": "Early gum disease with red, swollen, bleeding gums. Reversible with professional cleaning and good hygiene!",
+            "periodontitis": "Advanced gum disease damaging bone and tissue. Requires deep cleaning or surgery. Treatable!",
+            "bleeding gums": "🚨 Bleeding gums signal gingivitis or gum disease. Schedule cleaning immediately: +1 (555) 987-6543",
+            "receding gums": "Gum recession exposes roots, causing sensitivity. We treat with grafts or deep cleaning.",
+            "gum recession": "Caused by hard brushing, gum disease, or genetics. Gum grafts restore lost tissue!",
+            "swollen gums": "Swelling indicates infection or irritation. Rinse with salt water and call us: +1 (555) 987-6543",
+            "gum infection": "Gum infections need immediate treatment to prevent spread. Antibiotics and deep cleaning required!",
+            "deep cleaning": "Scaling and root planing removes bacteria below gumline. Essential for treating gum disease!",
+            "scaling": "Scaling removes tartar and bacteria from tooth surfaces and below gums. Prevents disease progression!",
+            "gum graft": "Gum grafts cover exposed roots, reduce sensitivity, and improve appearance. Minimally invasive!",
+            "periodontal disease": "Chronic inflammation destroying gums and bone. Treatment includes deep cleaning, surgery, maintenance.",
+            "how to prevent gum disease": "Brush, floss daily, don't smoke, eat healthy, manage diabetes, get regular dental cleanings!",
+            "gum pain": "Gum pain may signal infection or disease. Rinse with warm salt water and call us ASAP!",
+            "gum treatment": "Treatments range from deep cleaning to laser therapy to surgery, depending on severity.",
+
+            // Emergency Dental (15)
+            "toothache": "🚨 Severe toothache needs immediate care! Call emergency line: +1 (555) 000-HELP",
+            "dental emergency": "🚨 For emergencies (severe pain, trauma, bleeding), call +1 (555) 000-HELP immediately!",
+            "knocked out tooth": "🚨 URGENT: Rinse tooth, place in milk, get to us within 30 minutes! Call: +1 (555) 000-HELP",
+            "abscess": "🚨 Dental abscesses are serious infections! Call emergency line immediately: +1 (555) 000-HELP",
+            "swelling": "🚨 Facial swelling indicates infection. Apply cold compress and call emergency: +1 (555) 000-HELP",
+            "bleeding": "🚨 Uncontrolled bleeding is an emergency! Apply pressure with gauze and call: +1 (555) 000-HELP",
+            "broken jaw": "🚨 URGENT: Immobilize jaw, apply cold compress, go to ER or call: +1 (555) 000-HELP",
+            "loose tooth adult": "Adult loose tooth needs immediate attention! Avoid moving it and call us today!",
+            "something stuck in teeth": "Try gentle flossing. Never use sharp objects! If stuck, call us: +1 (555) 987-6543",
+            "canker sore": "Canker sores heal in 1-2 weeks. Use salt water rinse. If persistent, call for evaluation.",
+            "mouth injury": "Rinse with warm water, apply cold compress, control bleeding. Call us for assessment!",
+            "lost crown": "Save the crown! Use temporary cement from pharmacy or call for same-day appointment!",
+            "jaw pain": "TMJ or infection could cause jaw pain. Apply heat/cold and schedule evaluation soon!",
+            "bitten tongue": "Clean area, apply pressure if bleeding, use ice for swelling. Call if severe!",
+            "burn in mouth": "Rinse with cold water, avoid hot foods. Most burns heal naturally. Call if severe!",
+
+            // Pediatric Dentistry (10)
+            "kids dentist": "We specialize in gentle pediatric care! Fun, comfortable environment for children of all ages.",
+            "child first visit": "First dental visit should be by age 1 or when first tooth appears. Early care prevents problems!",
+            "children dental care": "Start brushing early, limit sugar, use fluoride, and bring kids for regular checkups!",
+            "pacifier teeth": "Prolonged pacifier use can affect teeth alignment. Wean by age 2-3 to prevent issues.",
+            "thumb sucking": "Thumb sucking past age 5 can affect teeth and jaw. We can help with gentle strategies to stop!",
+            "toddler teeth": "Care for baby teeth! They're crucial for eating, speaking, and holding space for adult teeth.",
+            "fluoride for kids": "Fluoride strengthens developing teeth and prevents cavities. Safe and effective for children!",
+            "kids braces": "Early orthodontic evaluation at age 7 can prevent future problems. We offer child-friendly options!",
+            "bottle tooth decay": "Never let baby sleep with bottle. Milk/juice causes severe decay. Use water if needed!",
+            "silver caps kids": "Silver crowns protect severely decayed baby teeth until they fall out naturally. Safe and effective!",
+
+            // Sedation & Comfort (8)
+            "sedation dentistry": "We offer nitrous oxide, oral sedation, and IV sedation for anxious patients. Completely comfortable!",
+            "laughing gas": "Nitrous oxide (laughing gas) relaxes you during treatment. Safe, wears off quickly!",
+            "sleep dentistry": "IV sedation lets you sleep through procedures. Wake up with work completed!",
+            "dental fear": "We specialize in anxiety-free dentistry! Sedation options, gentle care, and understanding staff.",
+            "afraid of dentist": "You're not alone! We offer sedation, calming environment, and take time to ease your fears.",
+            "pain free dentistry": "Modern anesthesia and sedation make dentistry completely comfortable. No pain guaranteed!",
+            "nitrous oxide": "Safe sedation gas that relaxes you during treatment. Perfect for mild to moderate anxiety!",
+            "iv sedation": "Deep sedation for complex procedures or severe anxiety. Monitored by anesthesia professional.",
+
+            // Special Topics (12)
+            "sensitive teeth": "Sensitivity from exposed roots or thin enamel. We offer desensitizing treatments and fluoride!",
+            "bad breath": "Bad breath (halitosis) from bacteria, gum disease, or dry mouth. Professional cleaning helps!",
+            "dry mouth": "Dry mouth increases cavity risk. Drink water, chew sugar-free gum, use special rinses!",
+            "tmj": "TMJ disorders cause jaw pain and clicking. We treat with splints, therapy, or medication.",
+            "teeth grinding": "Grinding (bruxism) wears teeth and causes pain. Custom nightguards protect your smile!",
+            "nightguard": "Custom nightguards prevent grinding damage. Comfortable, durable, and protect your investment!",
+            "sports mouthguard": "Protect teeth during sports with custom mouthguards. Better fit and protection than store-bought!",
+            "pregnancy dental": "Dental care is safe during pregnancy! Essential for preventing pregnancy gingivitis.",
+            "diabetes dental": "Diabetes increases gum disease risk. Regular cleanings and good control are essential!",
+            "cancer treatment dental": "Dental care before cancer treatment prevents complications. We coordinate with your oncologist.",
+            "denture repair": "We repair broken dentures same-day in many cases. Call us immediately: +1 (555) 987-6543",
+            "second opinion": "Always welcome! Bring your X-rays for a complimentary second opinion consultation.",
+
+            // Thanks & Goodbye (5)
+            "thank you": "You're very welcome! We're here anytime you need us. Have a wonderful day!",
+            "thanks": "My pleasure! Feel free to ask anything else. Take care!",
+            "bye": "Goodbye! Remember, we're here for all your dental needs. Call us at +1 (555) 987-6543!",
+            "goodbye": "Take care! We look forward to helping you achieve your best smile!",
+            "see you": "See you soon! Don't hesitate to reach out anytime. Have a great day!"
+        };
+
+        // Function to find best matching answer
+        const findAnswer = (userInput) => {
+            const input = userInput.toLowerCase().trim();
+            
+            // Direct match
+            if (KNOWLEDGE_BASE[input]) {
+                return KNOWLEDGE_BASE[input];
+            }
+            
+            // Partial match - find best match
+            let bestMatch = null;
+            let highestScore = 0;
+            
+            for (const [key, value] of Object.entries(KNOWLEDGE_BASE)) {
+                if (input.includes(key) || key.includes(input)) {
+                    const score = key.length;
+                    if (score > highestScore) {
+                        highestScore = score;
+                        bestMatch = value;
+                    }
+                }
+            }
+            
+            if (bestMatch) return bestMatch;
+            
+            // No match found
+            return "I'd love to help! I have answers about our services, hours, insurance, treatments, and more. Try asking about:\n\n• Services (implants, whitening, braces)\n• Insurance and payment\n• Emergency care\n• Location and hours\n\nOr call us directly: +1 (555) 987-6543";
+        };
+
+        // --- Utils ---
+        const e = React.createElement;
+        const Icon = ({ name, size = 24, className = "" }) => {
+            const icons = { Smile, Menu, X, MessageSquare, Send, Sparkles, User, Bot, Loader2, ArrowRight, Shield, Award, Clock, Star, MapPin, Phone, Mail, Microscope, ShieldCheck, Zap, Activity, Calendar, Monitor, Dna, Heart, Stethoscope, HelpCircle };
+            const IconComp = icons[name] || Activity;
+            return e(IconComp, { size, className });
+        };
+
+        // --- Components ---
+
+        const Navbar = () => {
+            const [isOpen, setIsOpen] = useState(false);
+            const location = useLocation();
+            const links = [
+                { name: 'Home', path: '/' },
+                { name: 'Who We Are', path: '/about' },
+                { name: 'Services', path: '/services' },
+                { name: 'Contact', path: '/contact' }
+            ];
+
+            return e('nav', { className: "bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-100" },
+                e('div', { className: "max-w-7xl mx-auto px-4 h-20 flex justify-between items-center" },
+                    e(Link, { to: "/", className: "flex items-center space-x-2" },
+                        e('div', { className: "bg-teal-600 p-2 rounded-lg" }, e(Icon, { name: 'Smile', className: "text-white" })),
+                        e('span', { className: "text-xl font-bold text-slate-800 tracking-tight" }, CLINIC_NAME)
+                    ),
+                    e('div', { className: "hidden md:flex items-center space-x-8" },
+                        links.map(l => e(Link, { 
+                            key: l.path, 
+                            to: l.path, 
+                            className: `text-sm font-medium hover:text-teal-600 transition-colors ${location.pathname === l.path ? 'text-teal-600' : 'text-slate-600'}` 
+                        }, l.name)),
+                        e(Link, { to: "/contact", className: "bg-teal-600 text-white px-6 py-2.5 rounded-full font-semibold hover:bg-teal-700 shadow-md transition-all active:scale-95" }, "Book Visit")
+                    ),
+                    e('button', { className: "md:hidden p-2", onClick: () => setIsOpen(!isOpen) }, e(Icon, { name: isOpen ? 'X' : 'Menu' }))
+                ),
+                isOpen && e('div', { className: "md:hidden bg-white border-t p-4 space-y-4 animate-fade-in" },
+                    links.map(l => e(Link, { key: l.path, to: l.path, onClick: () => setIsOpen(false), className: "block font-medium text-slate-600 p-2" }, l.name)),
+                    e(Link, { to: "/contact", onClick: () => setIsOpen(false), className: "block w-full bg-teal-600 text-white text-center py-3 rounded-xl font-bold" }, "Book Appointment")
+                )
+            );
+        };
+
+        const AppointmentForm = () => {
+            const [submitted, setSubmitted] = useState(false);
+            const [loading, setLoading] = useState(false);
+
+            const onSubmit = (event) => {
+                event.preventDefault();
+                setLoading(true);
+                setTimeout(() => { setLoading(false); setSubmitted(true); }, 1500);
+            };
+
+            if (submitted) return e('div', { className: "bg-teal-50 p-10 rounded-3xl border border-teal-100 text-center animate-fade-in" },
+                e('div', { className: "w-20 h-20 bg-teal-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-xl" }, e(Icon, { name: 'CheckCircle2', size: 40, className: "text-white" })),
+                e('h3', { className: "text-3xl font-bold text-slate-800 mb-2 font-display" }, "Request Received!"),
+                e('p', { className: "text-slate-600 mb-8" }, "Our coordinators will contact you within 1 hour to finalize your visit."),
+                e('button', { onClick: () => setSubmitted(false), className: "text-teal-600 font-bold hover:underline" }, "Book another session")
+            );
+
+            return e('form', { onSubmit, className: "bg-white p-8 sm:p-10 rounded-[2.5rem] shadow-2xl border border-slate-100 space-y-5" },
+                e('h3', { className: "text-2xl font-bold font-display mb-2" }, "Reserve Your Lounge Visit"),
+                e('p', { className: "text-slate-500 text-sm mb-6" }, "Submit your details for a VIP priority response."),
+                e('div', { className: "grid grid-cols-1 sm:grid-cols-2 gap-4" },
+                    e('input', { required: true, type: "text", placeholder: "Full Name", className: "w-full px-5 py-4 rounded-xl bg-slate-50 border focus:border-teal-500 outline-none transition-all" }),
+                    e('input', { required: true, type: "tel", placeholder: "Phone Number", className: "w-full px-5 py-4 rounded-xl bg-slate-50 border focus:border-teal-500 outline-none transition-all" })
+                ),
+                e('select', { required: true, className: "w-full px-5 py-4 rounded-xl bg-slate-50 border focus:border-teal-500 outline-none" },
+                    e('option', { value: "" }, "Select Treatment"),
+                    SERVICES.map(s => e('option', { key: s.id, value: s.id }, s.title))
+                ),
+                e('textarea', { placeholder: "Tell us your concerns...", rows: 3, className: "w-full px-5 py-4 rounded-xl bg-slate-50 border focus:border-teal-500 outline-none" }),
+                e('button', { type: "submit", disabled: loading, className: "w-full bg-teal-600 text-white font-bold py-4 rounded-2xl hover:bg-teal-700 shadow-xl transition-all active:scale-95 disabled:opacity-70" },
+                    loading ? e('div', { className: "flex items-center justify-center space-x-2" }, e(Icon, { name: 'Loader2', size: 20, className: "animate-spin" }), e('span', null, "Processing...")) : "Request Appointment"
+                )
+            );
+        };
+
+        const SmileChatBot = () => {
+            const [isOpen, setIsOpen] = useState(false);
+            const [messages, setMessages] = useState([{ role: 'bot', text: "Welcome to The Dental Care Lounge! 👋 I have answers to 200+ dental questions. How can I help your smile today?" }]);
+            const [input, setInput] = useState('');
+            const [loading, setLoading] = useState(false);
+            const scrollRef = useRef(null);
+
+            useEffect(() => { if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight; }, [messages, loading]);
+
+            const handleSend = (textOverride) => {
+                const text = textOverride || input;
+                if (!text.trim() || loading) return;
+                setMessages(prev => [...prev, { role: 'user', text }]);
+                setInput('');
+                setLoading(true);
+                
+                // Simulate brief "thinking" time
+                setTimeout(() => {
+                    const answer = findAnswer(text);
+                    setMessages(prev => [...prev, { role: 'bot', text: answer }]);
+                    setLoading(false);
+                }, 400);
+            };
+
+            return e(React.Fragment, null,
+                e('button', { onClick: () => setIsOpen(true), className: "fixed bottom-6 right-6 bg-teal-600 text-white p-4 rounded-full shadow-2xl z-40 hover:scale-110 transition-transform" }, e(Icon, { name: 'MessageSquare' })),
+                isOpen && e('div', { className: "fixed bottom-6 right-6 w-[90vw] sm:w-[400px] h-[600px] bg-white rounded-3xl shadow-2xl flex flex-col z-50 overflow-hidden border animate-fade-in" },
+                    e('div', { className: "bg-teal-600 p-5 text-white flex justify-between items-center" },
+                        e('div', { className: "flex items-center space-x-2" }, e(Icon, { name: 'Sparkles', size: 20 }), e('span', { className: "font-bold" }, "Smile Assistant")),
+                        e('button', { onClick: () => setIsOpen(false) }, e(Icon, { name: 'X' }))
+                    ),
+                    e('div', { ref: scrollRef, className: "flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50 chat-scroll" },
+                        messages.map((m, i) => e('div', { key: i, className: `flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}` },
+                            e('div', { className: `p-3 rounded-2xl text-sm max-w-[85%] whitespace-pre-line ${m.role === 'user' ? 'bg-teal-600 text-white shadow-md' : 'bg-white border shadow-sm text-slate-700'}` }, m.text)
+                        )),
+                        loading && e('div', { className: "text-xs text-slate-400 p-2 italic" }, "Looking up answer...")
+                    ),
+                    e('div', { className: "p-2 bg-white flex space-x-2 overflow-x-auto no-scrollbar border-t" },
+                        SUGGESTED_QUESTIONS.map(q => e('button', { key: q, onClick: () => handleSend(q), className: "whitespace-nowrap px-3 py-1.5 bg-slate-100 rounded-full text-[10px] font-bold border hover:bg-teal-50" }, q))
+                    ),
+                    e('div', { className: "p-4 border-t flex space-x-2 bg-white" },
+                        e('input', { value: input, onChange: i => setInput(i.target.value), onKeyDown: k => k.key === 'Enter' && handleSend(), placeholder: "Ask me anything...", className: "flex-1 bg-slate-50 rounded-xl px-4 py-2 text-sm outline-none border" }),
+                        e('button', { onClick: () => handleSend(), className: "text-teal-600 p-2" }, e(Icon, { name: 'Send' }))
+                    )
+                )
+            );
+        };
+
+        const Footer = () => e('footer', { className: "bg-slate-900 text-white py-16" },
+            e('div', { className: "max-w-7xl mx-auto px-4 grid grid-cols-1 md:grid-cols-4 gap-12" },
+                e('div', { className: "space-y-4" }, e('h3', { className: "text-xl font-bold font-display" }, CLINIC_NAME), e('p', { className: "text-slate-400 text-sm leading-relaxed" }, "World-class dentistry in a refined lounge environment.")),
+                e('div', null, e('h4', { className: "font-bold mb-6" }, "Services"), e('ul', { className: "space-y-2 text-sm text-slate-400" }, SERVICES.map(s => e('li', { key: s.id }, s.title)))),
+                e('div', null, e('h4', { className: "font-bold mb-6" }, "Hours"), e('ul', { className: "space-y-2 text-sm text-slate-400" }, CONTACT_INFO.hours.map(h => e('li', { key: h.day, className: "flex justify-between" }, e('span', null, h.day), e('span', null, h.time))))),
+                e('div', null, e('h4', { className: "font-bold mb-6" }, "Contact"), e('p', { className: "text-sm text-slate-400 mb-2" }, CONTACT_INFO.address), e('p', { className: "text-teal-400 font-bold" }, CONTACT_INFO.phone))
+            ),
+            e('div', { className: "text-center mt-16 text-slate-600 text-xs border-t border-slate-800 pt-8" }, `© ${new Date().getFullYear()} ${CLINIC_NAME}. Excellence in Smile Design.`)
+        );
+
+        // --- Pages ---
+
+        const Home = () => e('div', { className: "space-y-0" },
+            e('section', { className: "relative h-screen flex items-center justify-center overflow-hidden" },
+                e('div', { className: "absolute inset-0 z-0" },
+                    e('video', { autoPlay: true, loop: true, muted: true, playsInline: true, className: "w-full h-full object-cover" }, e('source', { src: "https://www.pexels.com/download/video/4489831/", type: "video/mp4" })),
+                    e('div', { className: "absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]" }),
+                    e('div', { className: "absolute inset-0 bg-gradient-to-b from-slate-900/60 via-transparent to-slate-900/80" })
+                ),
+                e('div', { className: "relative z-10 text-center px-4 animate-fade-in" },
+                    e('div', { className: "inline-flex items-center space-x-2 px-4 py-1.5 bg-white/10 backdrop-blur-md border border-white/20 text-white rounded-full text-xs font-bold uppercase tracking-widest mb-8" }, e(Icon, { name: 'Sparkles', size: 14, className: "text-teal-400" }), e('span', null, "Clinical Heritage")),
+                    e('h1', { className: "text-5xl md:text-8xl font-bold font-display text-white mb-8 leading-tight" }, "Precision Care.", e('br'), e('span', { className: "text-teal-400 italic font-light" }, "Elevated Comfort.")),
+                    e('p', { className: "text-slate-200 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-light" }, "Where medical mastery meets the tranquility of a luxury lounge. Discover your best smile."),
+                    e('div', { className: "flex flex-col sm:flex-row justify-center space-y-4 sm:space-y-0 sm:space-x-6" },
+                        e(Link, { to: "/contact", className: "bg-teal-600 text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-teal-500 shadow-2xl transition-all" }, "Start Your Journey"),
+                        e(Link, { to: "/services", className: "bg-white/10 backdrop-blur-md text-white border border-white/30 px-10 py-5 rounded-full font-bold text-lg hover:bg-white/20 transition-all flex items-center space-x-2" }, e('span', null, "Our Expertise"), e(Icon, { name: 'ArrowRight', size: 20 }))
+                    )
+                )
+            ),
+            e('section', { className: "py-32 bg-white" },
+                e('div', { className: "max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-20 items-center" },
+                    e('div', { className: "space-y-8" },
+                        e('h2', { className: "text-4xl md:text-5xl font-bold font-display" }, "The Art of ", e('span', { className: "text-teal-600" }, "Modern Dentistry.")),
+                        e('p', { className: "text-slate-600 text-lg leading-relaxed" }, "At The Dental Care Lounge, we utilize 3D digital simulation and evidence-based medicine to ensure absolute precision in every restoration."),
+                        e('div', { className: "grid grid-cols-2 gap-8" },
+                            e('div', null, e(Icon, { name: 'ShieldCheck', className: "text-teal-600 mb-2" }), e('h4', { className: "font-bold" }, "Biocompatibility"), e('p', { className: "text-sm text-slate-500" }, "Mercury-free restoration.")),
+                            e('div', null, e(Icon, { name: 'Microscope', className: "text-teal-600 mb-2" }), e('h4', { className: "font-bold" }, "Digital Flow"), e('p', { className: "text-sm text-slate-500" }, "Precision scanning."))
+                        )
+                    ),
+                    e('img', { src: "https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=1000", className: "rounded-3xl shadow-2xl w-full h-[500px] object-cover" })
+                )
+            )
+        );
+
+        const About = () => e('div', { className: "py-24 max-w-7xl mx-auto px-4" },
+            e('h1', { className: "text-5xl font-bold font-display mb-12 text-center" }, "Our Philosophy"),
+            e('div', { className: "grid grid-cols-1 md:grid-cols-3 gap-8" },
+                ['Specialist Board', 'Advanced Labs', 'Patient Concierge'].map(t => e('div', { key: t, className: "p-10 border rounded-[2rem] text-center hover:border-teal-600 transition-colors" },
+                    e(Icon, { name: 'Award', size: 48, className: "mx-auto text-teal-600 mb-6" }),
+                    e('h3', { className: "text-xl font-bold mb-4" }, t),
+                    e('p', { className: "text-sm text-slate-500 leading-relaxed" }, "Adhering to the world's most stringent sterilization and clinical protocols.")
+                ))
+            )
+        );
+
+        const ServicesPage = () => e('div', { className: "py-24 max-w-7xl mx-auto px-4" },
+            e('h1', { className: "text-5xl font-bold font-display mb-16 text-center" }, "Clinical Specialties"),
+            e('div', { className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10" },
+                SERVICES.map(s => e('div', { key: s.id, className: "bg-white p-8 rounded-3xl border shadow-sm hover:shadow-2xl transition-all" },
+                    e('div', { className: "text-teal-600 mb-6" }, e(Icon, { name: s.icon, size: 32 })),
+                    e('h3', { className: "text-2xl font-bold mb-4" }, s.title),
+                    e('p', { className: "text-slate-500 text-sm mb-6 leading-relaxed" }, s.description),
+                    e(Link, { to: "/contact", className: "text-teal-600 font-bold flex items-center" }, "Inquire ", e(Icon, { name: 'ArrowRight', size: 16, className: "ml-1" }))
+                ))
+            )
+        );
+
+        const Contact = () => e('div', { className: "py-24 max-w-7xl mx-auto px-4 grid grid-cols-1 lg:grid-cols-2 gap-16" },
+            e('div', null,
+                e('h1', { className: "text-5xl font-bold font-display mb-8" }, "Connect With Us"),
+                e('p', { className: "text-slate-600 mb-12" }, "Our flagship lounge is located downtown, providing an oasis of care in the heart of the city."),
+                e('div', { className: "space-y-8" },
+                    e('div', { className: "flex space-x-4" }, e(Icon, { name: 'MapPin', className: "text-teal-600" }), e('div', null, e('p', { className: "font-bold" }, "Address"), e('p', { className: "text-slate-500" }, CONTACT_INFO.address))),
+                    e('div', { className: "flex space-x-4" }, e(Icon, { name: 'Phone', className: "text-teal-600" }), e('div', null, e('p', { className: "font-bold" }, "Lounge Line"), e('p', { className: "text-teal-600 font-bold" }, CONTACT_INFO.phone))),
+                    e('div', { className: "flex space-x-4" }, e(Icon, { name: 'Activity', className: "text-red-500" }), e('div', null, e('p', { className: "font-bold text-red-600" }, "Emergency"), e('p', { className: "font-bold" }, CONTACT_INFO.emergency)))
+                )
+            ),
+            e(AppointmentForm)
+        );
+
+        const App = () => {
+            const { pathname } = useLocation();
+            useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
+            return e('div', { className: "min-h-screen flex flex-col" },
+                e(Navbar),
+                e('main', { className: "flex-grow" },
+                    e(Routes, null,
+                        e(Route, { path: "/", element: e(Home) }),
+                        e(Route, { path: "/about", element: e(About) }),
+                        e(Route, { path: "/services", element: e(ServicesPage) }),
+                        e(Route, { path: "/contact", element: e(Contact) })
+                    )
+                ),
+                e(Footer),
+                e(SmileChatBot)
+            );
+        };
+
+        const root = createRoot(document.getElementById('root'));
+        root.render(e(HashRouter, null, e(App)));
+    </script>
+</body>
+</html>
